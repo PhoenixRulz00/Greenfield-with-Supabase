@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  background: #e9e4d6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(47, 107, 79, 0.12), transparent 25rem),
+    #e9e4d6;
+}
+
+#root {
+  padding: clamp(12px, 3vw, 40px);
+}
+
+@media (min-width: 640px) {
+  #root {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #root > * {
+    width: min(1180px, 100%);
+  }
+}
