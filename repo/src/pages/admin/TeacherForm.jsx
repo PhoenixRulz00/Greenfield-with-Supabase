@@ -5,7 +5,6 @@ import { Button, Field, Input } from "../../components/ui";
 export default function TeacherForm({ initial, onSave, onCancel, saving, existingTeachers = [] }) {
   const isNew = initial === "new";
   const [form, setForm] = useState(isNew ? { name: "", email: "", phone: "", subject: "" } : initial);
-  const [createLogin, setCreateLogin] = useState(false);
   const [loginPassword, setLoginPassword] = useState("");
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
@@ -32,7 +31,10 @@ export default function TeacherForm({ initial, onSave, onCancel, saving, existin
         if (duplicateEmail) {
           return;
         }
-        onSave(form, createLogin ? { email: form.email, password: loginPassword } : null);
+        if (isNew && !loginPassword.trim()) {
+          return;
+        }
+        onSave(form, isNew ? { email: form.email, password: loginPassword } : null);
       }}
       className="grid grid-cols-2 gap-3"
     >
@@ -57,15 +59,10 @@ export default function TeacherForm({ initial, onSave, onCancel, saving, existin
 
       {isNew && (
         <div className="col-span-2 mt-1 rounded-md border border-[var(--rule-soft)] bg-[var(--slate-bg)] p-3">
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" checked={createLogin} onChange={(e) => setCreateLogin(e.target.checked)} />
-            Also create a teacher login (uses the email above)
-          </label>
-          {createLogin && (
-            <div className="mt-2">
-              <Field label="Temporary password"><Input type="text" required={createLogin} value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} /></Field>
-            </div>
-          )}
+          <p className="mb-2 text-sm font-medium text-[var(--ink)]">Create teacher login</p>
+          <div className="mt-2">
+            <Field label="Temporary password"><Input type="text" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} /></Field>
+          </div>
         </div>
       )}
 

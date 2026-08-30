@@ -9,7 +9,6 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
       ? { name: "", admissionNo: "", dob: "", gender: "F", guardianName: "", guardianPhone: "", sectionId: sections[0]?.id || "" }
       : initial
   );
-  const [createLogin, setCreateLogin] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -17,10 +16,10 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
 
   const duplicateLoginEmail = useMemo(() => {
     const value = String(loginEmail || "").trim().toLowerCase();
-    if (!createLogin || !value) return false;
+    if (!isNew || !value) return false;
 
     return existingTeachers.some((teacher) => String(teacher.email || "").trim().toLowerCase() === value);
-  }, [createLogin, existingTeachers, loginEmail]);
+  }, [existingTeachers, isNew, loginEmail]);
 
   const loginEmailClass = duplicateLoginEmail
     ? "focus-ring rounded-md border border-[var(--red)] bg-[var(--paper-raised)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)]"
@@ -31,7 +30,8 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
       onSubmit={(e) => {
         e.preventDefault();
         if (duplicateLoginEmail) return;
-        onSave(form, createLogin ? { email: loginEmail, password: loginPassword } : null);
+        if (isNew && (!loginEmail.trim() || !loginPassword.trim())) return;
+        onSave(form, isNew ? { email: loginEmail, password: loginPassword } : null);
       }}
       className="grid grid-cols-2 gap-3"
     >
@@ -53,30 +53,25 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
 
       {isNew && (
         <div className="col-span-2 mt-1 rounded-md border border-[var(--rule-soft)] bg-[var(--slate-bg)] p-3">
-          <label className="flex items-center gap-2 text-sm font-medium">
-            <input type="checkbox" checked={createLogin} onChange={(e) => setCreateLogin(e.target.checked)} />
-            Also create a student login for this record
-          </label>
-          {createLogin && (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <div className="col-span-1">
-                <Field label="Login email">
-                  <Input
-                    type="email"
-                    required={createLogin}
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    aria-invalid={duplicateLoginEmail}
-                    className={loginEmailClass}
-                  />
-                </Field>
-                {duplicateLoginEmail && (
-                  <p className="mt-1 text-xs font-medium text-[var(--red)]">This email already exists.</p>
-                )}
-              </div>
-              <Field label="Temporary password"><Input type="text" required={createLogin} value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} /></Field>
+          <p className="mb-2 text-sm font-medium text-[var(--ink)]">Create student login</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <div className="col-span-1">
+              <Field label="Login email">
+                <Input
+                  type="email"
+                  required
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  aria-invalid={duplicateLoginEmail}
+                  className={loginEmailClass}
+                />
+              </Field>
+              {duplicateLoginEmail && (
+                <p className="mt-1 text-xs font-medium text-[var(--red)]">This email already exists.</p>
+              )}
             </div>
-          )}
+            <Field label="Temporary password"><Input type="text" required value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} /></Field>
+          </div>
         </div>
       )}
 

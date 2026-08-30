@@ -1,7 +1,7 @@
 import React from "react";
 import { School, LogOut } from "lucide-react";
 
-export default function AppShell({ navItems, tab, setTab, profile, onSignOut, children, footer }) {
+export default function AppShell({ navItems, tab, setTab, profile, onSignOut, onChangePassword, showChangePassword, children, footer }) {
   return (
     <div className="erp-root min-h-[600px] overflow-hidden rounded-lg border border-[var(--rule)]">
       <div className="flex flex-col sm:flex-row">
@@ -31,11 +31,21 @@ export default function AppShell({ navItems, tab, setTab, profile, onSignOut, ch
               <p className="font-semibold">{profile.name}</p>
               <p className="capitalize text-[var(--ink-soft)]">{profile.role}</p>
             </div>
+            {showChangePassword && (
+              <button onClick={onChangePassword} className="focus-ring mb-2 flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--ink)] hover:bg-[var(--slate-bg)]">
+                Change password
+              </button>
+            )}
             <button onClick={onSignOut} className="focus-ring flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-[var(--ink-soft)] hover:bg-[var(--slate-bg)]">
               <LogOut size={14} /> Sign out
             </button>
           </div>
-          <button onClick={onSignOut} className="focus-ring rounded-md p-2 text-[var(--ink-soft)] hover:bg-[var(--slate-bg)] sm:hidden"><LogOut size={16} /></button>
+          <div className="flex items-center gap-2 sm:hidden">
+            {showChangePassword && (
+              <button onClick={onChangePassword} className="focus-ring rounded-md px-2 py-1.5 text-xs text-[var(--ink)] hover:bg-[var(--slate-bg)]">Password</button>
+            )}
+            <button onClick={onSignOut} className="focus-ring rounded-md p-2 text-[var(--ink-soft)] hover:bg-[var(--slate-bg)]"><LogOut size={16} /></button>
+          </div>
         </aside>
 
         <main className="erp-scroll min-h-[600px] flex-1 overflow-y-auto p-4 sm:p-6">

@@ -37,17 +37,15 @@ export default function TeachersPage({ data, refetch }) {
       let teacher;
       if (editing === "new") {
         teacher = await createTeacher(form);
-        if (loginInfo) {
-          await createLogin({
-            email: loginInfo.email,
-            password: loginInfo.password,
-            name: teacher.name,
-            role: "teacher",
-            teacherId: teacher.id,
-          });
-          setSuccess(`Temporary password created for ${teacher.name}. Tell them to sign in with ${loginInfo.email} and set a new password immediately.`);
-          setToast({ visible: true, email: loginInfo.email, password: loginInfo.password });
-        }
+        await createLogin({
+          email: loginInfo.email,
+          password: loginInfo.password,
+          name: teacher.name,
+          role: "teacher",
+          teacherId: teacher.id,
+        });
+        setSuccess(`Temporary password created for ${teacher.name}. Tell them to sign in with ${loginInfo.email} and set a new password immediately.`);
+        setToast({ visible: true, email: loginInfo.email, password: loginInfo.password });
       } else {
         await updateTeacher(editing.id, form);
       }

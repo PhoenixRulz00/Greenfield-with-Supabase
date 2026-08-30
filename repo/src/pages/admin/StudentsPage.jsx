@@ -11,6 +11,7 @@ export default function StudentsPage({ data, refetch }) {
   const { students, teachers, sections, attendance } = data;
   const [query, setQuery] = useState("");
   const [sectionFilter, setSectionFilter] = useState("all");
+  const [genderFilter, setGenderFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("active");
   const [editing, setEditing] = useState(null); // null | 'new' | student
   const [csvOpen, setCsvOpen] = useState(false);
@@ -29,6 +30,7 @@ export default function StudentsPage({ data, refetch }) {
     if (statusFilter === "active" && !s.active) return false;
     if (statusFilter === "inactive" && s.active) return false;
     if (sectionFilter !== "all" && s.sectionId !== sectionFilter) return false;
+    if (genderFilter !== "all" && s.gender !== genderFilter) return false;
     if (query && !`${s.name} ${s.admissionNo}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
@@ -41,17 +43,15 @@ export default function StudentsPage({ data, refetch }) {
       let student;
       if (editing === "new") {
         student = await createStudent(form);
-        if (loginInfo) {
-          await createLogin({
-            email: loginInfo.email,
-            password: loginInfo.password,
-            name: student.name,
-            role: "student",
-            studentId: student.id,
-          });
-          setSuccess(`Temporary password created for ${student.name}. Tell them to sign in with ${loginInfo.email} and set a new password immediately.`);
-          setToast({ visible: true, email: loginInfo.email, password: loginInfo.password });
-        }
+        await createLogin({
+          email: loginInfo.email,
+          password: loginInfo.password,
+          name: student.name,
+          role: "student",
+          studentId: student.id,
+        });
+        setSuccess(`Temporary password created for ${student.name}. Tell them to sign in with ${loginInfo.email} and set a new password immediately.`);
+        setToast({ visible: true, email: loginInfo.email, password: loginInfo.password });
       } else {
         await updateStudent(editing.id, form);
       }
@@ -121,6 +121,12 @@ export default function StudentsPage({ data, refetch }) {
           <option value="all">All sections</option>
           {sections.map((s) => <option key={s.id} value={s.id}>{s.className} - {s.name}</option>)}
         </Select>
+        <Select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)}>
+          <option value="all">All genders</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+        </Select>
         <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="active">Active</option>
           <option value="inactive">Deactivated</option>
@@ -137,7 +143,9 @@ export default function StudentsPage({ data, refetch }) {
               <tr>
                 <th className="px-3 py-2">Name</th>
                 <th className="px-3 py-2">Admission No.</th>
+                <th className="px-3 py-2">Email</th>
                 <th className="px-3 py-2">Section</th>
+                <th className="px-3 py-2">Gender</th>
                 <th className="px-3 py-2">Guardian</th>
                 <th className="px-3 py-2">Attendance</th>
                 <th className="px-3 py-2">Status</th>
@@ -151,7 +159,9 @@ export default function StudentsPage({ data, refetch }) {
                   <tr key={s.id} className="border-t border-[var(--rule-soft)]">
                     <td className="px-3 py-2 font-medium">{s.name}</td>
                     <td className="erp-mono px-3 py-2 text-xs">{s.admissionNo}</td>
+                    <td className="px-3 py-2 text-xs text-[var(--ink-soft)]">{s.email || "—"}</td>
                     <td className="px-3 py-2">{sectionLabel(sections, s.sectionId)}</td>
+                    <td className="px-3 py-2 text-xs capitalize">{s.gender || "—"}</td>
                     <td className="px-3 py-2 text-xs text-[var(--ink-soft)]">{s.guardianName}<br/>{s.guardianPhone}</td>
                     <td className="px-3 py-2">{stats.pct === null ? "—" : <Badge tone={stats.pct < 75 ? "red" : "green"}>{stats.pct}%</Badge>}</td>
                     <td className="px-3 py-2">{s.active ? <Badge tone="green">Active</Badge> : <Badge tone="red">Deactivated</Badge>}</td>

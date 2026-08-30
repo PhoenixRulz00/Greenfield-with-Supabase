@@ -50,6 +50,10 @@ export async function updatePassword(newPassword) {
 // teacher or student. Requires the caller to already be signed in as admin
 // (the function verifies this server-side too).
 export async function createLogin({ email, password, name, role, teacherId, studentId }) {
+  if (!email || !password || !name || !role) {
+    throw new Error("email, password, name, and role are required.");
+  }
+
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData?.session?.access_token;
   if (!token) throw new Error("Not signed in.");

@@ -59,9 +59,11 @@ create table if not exists public.students (
   name            text not null,
   admission_no    text not null unique,
   dob             date,
+  age             integer,
   gender          text,
   guardian_name   text,
   guardian_phone  text,
+  email           text,
   active          boolean not null default true,
   section_id      uuid not null references public.sections(id) on delete restrict,
   created_at      timestamptz not null default now()
@@ -144,6 +146,19 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Clears the forced-password-change flag after a user successfully changes
+-- their password on the first login or any later password update.
+create or replace function public.clear_password_reset_flag()
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.profiles
+  set must_change_password = false
+  where id = auth.uid();
+$$;
 
 -- ----------------------------------------------------------------------------
 -- 3. HELPER FUNCTIONS FOR RLS POLICIES

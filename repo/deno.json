@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "check": "deno check supabase/functions/**/*.ts"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window", "deno.ns", "esnext", "dom"],
+    "strict": false
+  }
+}

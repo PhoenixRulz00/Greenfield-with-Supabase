@@ -26,7 +26,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -79,8 +79,9 @@ serve(async (req) => {
     if (createErr) return json({ error: createErr.message }, 400);
 
     return json({ user: created.user }, 201);
-  } catch (err) {
-    return json({ error: err.message || "Unexpected error" }, 500);
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unexpected error";
+    return json({ error: errorMessage }, 500);
   }
 });
 

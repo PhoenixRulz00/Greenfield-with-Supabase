@@ -1,13 +1,16 @@
 import { supabase } from "../supabaseClient";
+import { createLogin } from "./auth";
 
 const mapStudent = (s) => ({
   id: s.id,
   name: s.name,
   admissionNo: s.admission_no,
   dob: s.dob,
+  age: s.age,
   gender: s.gender,
   guardianName: s.guardian_name,
   guardianPhone: s.guardian_phone,
+  email: s.email,
   active: s.active,
   sectionId: s.section_id,
 });
@@ -18,16 +21,18 @@ export async function fetchStudents() {
   return data.map(mapStudent);
 }
 
-export async function createStudent({ name, admissionNo, dob, gender, guardianName, guardianPhone, sectionId }) {
+export async function createStudent({ name, admissionNo, dob, age, gender, guardianName, guardianPhone, email, sectionId }) {
   const { data, error } = await supabase
     .from("students")
     .insert({
       name,
       admission_no: admissionNo,
       dob: dob || null,
+      age: age ? parseInt(age) : null,
       gender,
       guardian_name: guardianName,
       guardian_phone: guardianPhone,
+      email: email || null,
       section_id: sectionId,
     })
     .select()
@@ -36,16 +41,18 @@ export async function createStudent({ name, admissionNo, dob, gender, guardianNa
   return mapStudent(data);
 }
 
-export async function updateStudent(id, { name, admissionNo, dob, gender, guardianName, guardianPhone, sectionId }) {
+export async function updateStudent(id, { name, admissionNo, dob, age, gender, guardianName, guardianPhone, email, sectionId }) {
   const { data, error } = await supabase
     .from("students")
     .update({
       name,
       admission_no: admissionNo,
       dob: dob || null,
+      age: age ? parseInt(age) : null,
       gender,
       guardian_name: guardianName,
       guardian_phone: guardianPhone,
+      email: email || null,
       section_id: sectionId,
     })
     .eq("id", id)
@@ -61,9 +68,10 @@ export async function setStudentActive(id, active) {
   return mapStudent(data);
 }
 
-// rows: [{ name, admissionNo, section: "5-A", guardianName, guardianPhone }]
+// rows: [{ name, admissionNo, section: "5-A", guardianName, guardianPhone, email?, password? }]
 // sections: the app's already-loaded section list (with class name attached)
-// so we can resolve "5-A" -> section_id without extra round-trips.
+// Admin must provide password column in CSV for each student
+// Also creates auth logins with the provided temporary passwords.
 export async function importStudents(rows, sectionsWithClassName) {
   const findSection = (label) => {
     if (!label) return null;
@@ -81,18 +89,62 @@ export async function importStudents(rows, sectionsWithClassName) {
       skipped.push({ row, reason: !section ? "section not found" : "missing name/admissionNo" });
       continue;
     }
+    if (!row.password) {
+      skipped.push({ row, reason: "password required (provide in CSV)" });
+      continue;
+    }
     toInsert.push({
       name: row.name,
       admission_no: row.admissionNo,
       guardian_name: row.guardianName || null,
       guardian_phone: row.guardianPhone || null,
       section_id: section.id,
+      email: row.email || null,
+      password: row.password,
     });
   }
 
-  if (toInsert.length === 0) return { created: [], skipped };
+  if (toInsert.length === 0) return { created: [], logins: [], skipped };
 
-  const { data, error } = await supabase.from("students").insert(toInsert).select();
+  const { data, error } = await supabase.from("students").insert(toInsert.map(({ password, ...rest }) => rest)).select();
   if (error) throw error;
-  return { created: (data || []).map(mapStudent), skipped };
+
+  const created = (data || []).map(mapStudent);
+  const logins = [];
+  const loginErrors = [];
+
+  // Create auth logins with the provided temporary passwords
+  for (let i = 0; i < created.length; i++) {
+    const student = created[i];
+    const csvRow = toInsert[i];
+
+    try {
+      const email = student.email || `student-${student.admissionNo}@school.local`;
+      const password = csvRow.password;
+
+      await createLogin({
+        email,
+        password,
+        name: student.name,
+        role: "student",
+        studentId: student.id,
+      });
+
+      logins.push({
+        name: student.name,
+        email,
+        tempPassword: password,
+        admissionNo: student.admissionNo,
+      });
+    } catch (loginErr) {
+      // If login creation fails, log it but don't fail the entire import
+      loginErrors.push({
+        name: student.name,
+        admissionNo: student.admissionNo,
+        error: loginErr.message || "Failed to create login",
+      });
+    }
+  }
+
+  return { created, logins, loginErrors, skipped };
 }
