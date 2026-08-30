@@ -37,17 +37,13 @@ export async function getProfile(userId) {
 }
 
 export async function updatePassword(newPassword) {
-  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
-  if (error) throw error;
+  const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+  if (updateError) throw updateError;
 
-  const { data: sessionData } = await supabase.auth.getSession();
-  const userId = sessionData?.session?.user?.id;
-  if (userId) {
-    const { error: profileError } = await supabase.from("profiles").update({ must_change_password: false }).eq("id", userId);
-    if (profileError) throw profileError;
-  }
+  const { error: rpcError } = await supabase.rpc("clear_password_reset_flag");
+  if (rpcError) throw rpcError;
 
-  return data;
+  return { ok: true };
 }
 
 // Calls the admin-create-user Edge Function to create a real login for a
