@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { Button, Field, Input, Select } from "../../components/ui";
 
-export default function StudentForm({ sections, initial, onSave, onCancel, saving }) {
+export default function StudentForm({ sections, initial, onSave, onCancel, saving, existingTeachers = [] }) {
   const isNew = initial === "new";
   const [form, setForm] = useState(
     isNew
@@ -15,10 +15,22 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
+  const duplicateLoginEmail = useMemo(() => {
+    const value = String(loginEmail || "").trim().toLowerCase();
+    if (!createLogin || !value) return false;
+
+    return existingTeachers.some((teacher) => String(teacher.email || "").trim().toLowerCase() === value);
+  }, [createLogin, existingTeachers, loginEmail]);
+
+  const loginEmailClass = duplicateLoginEmail
+    ? "focus-ring rounded-md border border-[var(--red)] bg-[var(--paper-raised)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)]"
+    : "focus-ring rounded-md border border-[var(--rule)] bg-[var(--paper-raised)] px-3 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink-soft)]";
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (duplicateLoginEmail) return;
         onSave(form, createLogin ? { email: loginEmail, password: loginPassword } : null);
       }}
       className="grid grid-cols-2 gap-3"
@@ -40,14 +52,28 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
       <Field label="Guardian phone"><Input value={form.guardianPhone || ""} onChange={set("guardianPhone")} /></Field>
 
       {isNew && (
-        <div className="col-span-2 mt-1 rounded-md border border-[var(--rule-soft)] p-3">
+        <div className="col-span-2 mt-1 rounded-md border border-[var(--rule-soft)] bg-[var(--slate-bg)] p-3">
           <label className="flex items-center gap-2 text-sm font-medium">
             <input type="checkbox" checked={createLogin} onChange={(e) => setCreateLogin(e.target.checked)} />
             Also create a student login for this record
           </label>
           {createLogin && (
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <Field label="Login email"><Input type="email" required={createLogin} value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} /></Field>
+              <div className="col-span-1">
+                <Field label="Login email">
+                  <Input
+                    type="email"
+                    required={createLogin}
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    aria-invalid={duplicateLoginEmail}
+                    className={loginEmailClass}
+                  />
+                </Field>
+                {duplicateLoginEmail && (
+                  <p className="mt-1 text-xs font-medium text-[var(--red)]">This email already exists.</p>
+                )}
+              </div>
               <Field label="Temporary password"><Input type="text" required={createLogin} value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} /></Field>
             </div>
           )}
@@ -56,7 +82,7 @@ export default function StudentForm({ sections, initial, onSave, onCancel, savin
 
       <div className="col-span-2 mt-2 flex justify-end gap-2">
         <Button variant="ghost" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" icon={Check} disabled={saving}>{saving ? "Saving…" : "Save student"}</Button>
+        <Button type="submit" icon={Check} disabled={saving || duplicateLoginEmail}>{saving ? "Saving…" : "Save student"}</Button>
       </div>
     </form>
   );

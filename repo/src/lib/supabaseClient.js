@@ -10,9 +10,15 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
+if (typeof window !== "undefined") {
+  Object.keys(window.localStorage)
+    .filter((key) => key.startsWith("sb-") && (key.includes("-auth-token") || key.includes("-auth-token-code-verifier")))
+    .forEach((key) => window.localStorage.removeItem(key));
+}
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
+    persistSession: false,
+    autoRefreshToken: false,
   },
 });

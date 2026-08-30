@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GraduationCap, Search, Plus, Pencil, UserX, UserCheck } from "lucide-react";
 import { Button, Badge, EmptyState, Modal, Select } from "../../components/ui";
 import { createTeacher, updateTeacher, setTeacherActive } from "../../lib/queries/teachers";
@@ -13,6 +13,14 @@ export default function TeachersPage({ data, refetch }) {
   const [editing, setEditing] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [toast, setToast] = useState({ visible: false, email: "", password: "" });
+
+  useEffect(() => {
+    if (!toast.visible) return;
+    const timer = setTimeout(() => setToast((current) => ({ ...current, visible: false })), 5000);
+    return () => clearTimeout(timer);
+  }, [toast.visible]);
 
   const filtered = teachers.filter((t) => {
     if (statusFilter === "active" && !t.active) return false;
@@ -24,6 +32,7 @@ export default function TeachersPage({ data, refetch }) {
   const saveTeacher = async (form, loginInfo) => {
     setSaving(true);
     setError("");
+    setSuccess("");
     try {
       let teacher;
       if (editing === "new") {
@@ -36,6 +45,8 @@ export default function TeachersPage({ data, refetch }) {
             role: "teacher",
             teacherId: teacher.id,
           });
+          setSuccess(`Temporary password created for ${teacher.name}. Tell them to sign in with ${loginInfo.email} and set a new password immediately.`);
+          setToast({ visible: true, email: loginInfo.email, password: loginInfo.password });
         }
       } else {
         await updateTeacher(editing.id, form);
@@ -43,7 +54,12 @@ export default function TeachersPage({ data, refetch }) {
       await refetch();
       setEditing(null);
     } catch (err) {
-      setError(err.message || "Failed to save teacher.");
+      const message = err?.message || "";
+      if (message.includes("teachers_email_key") || message.toLowerCase().includes("duplicate key") || message.toLowerCase().includes("already exists") || message === "This email already exists.") {
+        setError("This email already exists.");
+      } else {
+        setError(message || "Failed to save teacher.");
+      }
     } finally {
       setSaving(false);
     }
@@ -64,7 +80,20 @@ export default function TeachersPage({ data, refetch }) {
         <Button icon={Plus} onClick={() => setEditing("new")}>Add teacher</Button>
       </div>
 
+      {success && (
+        <div className="rounded-md border border-[var(--green)] bg-[var(--green-bg)] px-3 py-2 text-sm text-[var(--green)]">
+          {success}
+        </div>
+      )}
       {error && <p className="rounded-md bg-[var(--red-bg)] px-3 py-2 text-xs text-[var(--red)]">{error}</p>}
+
+      {toast.visible && (
+        <div className="fixed right-4 top-4 z-50 w-80 rounded-lg border border-[var(--green)] bg-[var(--paper-raised)] p-3 shadow-lg">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--green)]">Temporary password created</p>
+          <p className="mt-2 text-sm font-medium">{toast.email}</p>
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">Temporary password: {toast.password}</p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <div className="relative">
@@ -108,7 +137,7 @@ export default function TeachersPage({ data, refetch }) {
 
       {editing && (
         <Modal title={editing === "new" ? "Add teacher" : `Edit ${editing.name}`} onClose={() => setEditing(null)} wide>
-          <TeacherForm initial={editing} onSave={saveTeacher} onCancel={() => setEditing(null)} saving={saving} />
+          <TeacherForm initial={editing} onSave={saveTeacher} onCancel={() => setEditing(null)} saving={saving} existingTeachers={teachers} />
         </Modal>
       )}
     </div>

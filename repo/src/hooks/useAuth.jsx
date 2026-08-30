@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { getProfile, signIn as apiSignIn, signOut as apiSignOut } from "../lib/queries/auth";
+import { getProfile, signIn as apiSignIn, signOut as apiSignOut, updatePassword as apiUpdatePassword } from "../lib/queries/auth";
 
 const AuthContext = createContext(null);
 
@@ -55,10 +55,23 @@ export function AuthProvider({ children }) {
     setProfile(null);
   };
 
+  const completePasswordChange = async (newPassword) => {
+    setError("");
+    try {
+      await apiUpdatePassword(newPassword);
+      const refreshed = await getProfile(session.user.id);
+      setProfile(refreshed);
+      return refreshed;
+    } catch (err) {
+      setError(err.message || "Password update failed.");
+      throw err;
+    }
+  };
+
   const loading = session === undefined || (session && profile === null && !error);
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, error, login, logout }}>
+    <AuthContext.Provider value={{ session, profile, loading, error, login, logout, completePasswordChange }}>
       {children}
     </AuthContext.Provider>
   );

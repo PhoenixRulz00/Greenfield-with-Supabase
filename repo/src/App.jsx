@@ -11,6 +11,7 @@ import ClassesPage from "./pages/admin/ClassesPage";
 import ReportsPage from "./pages/admin/ReportsPage";
 import TeacherHomePage from "./pages/teacher/TeacherHomePage";
 import StudentHomePage from "./pages/student/StudentHomePage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { useSchoolData } from "./hooks/useSchoolData";
@@ -88,6 +89,10 @@ function Root() {
         </p>
       </div>
     );
+  }
+
+  if (profile.mustChangePassword) {
+    return <ChangePasswordPage />;
   }
 
   return <SignedInApp />;

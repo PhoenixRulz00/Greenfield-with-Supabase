@@ -97,12 +97,13 @@ create table if not exists public.academic_years (
 
 -- Links a Supabase Auth user (auth.users) to a role + optional teacher/student record.
 create table if not exists public.profiles (
-  id           uuid primary key references auth.users(id) on delete cascade,
-  name         text not null,
-  role         text not null check (role in ('admin','teacher','student')),
-  teacher_id   uuid references public.teachers(id) on delete set null,
-  student_id   uuid references public.students(id) on delete set null,
-  created_at   timestamptz not null default now()
+  id                  uuid primary key references auth.users(id) on delete cascade,
+  name                text not null,
+  role                text not null check (role in ('admin','teacher','student')),
+  teacher_id          uuid references public.teachers(id) on delete set null,
+  student_id          uuid references public.students(id) on delete set null,
+  must_change_password boolean not null default false,
+  created_at          timestamptz not null default now()
 );
 
 create index if not exists idx_sections_class_id on public.sections(class_id);
@@ -125,13 +126,14 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, name, role, teacher_id, student_id)
+  insert into public.profiles (id, name, role, teacher_id, student_id, must_change_password)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'name', new.email),
     coalesce(new.raw_user_meta_data->>'role', 'student'),
     nullif(new.raw_user_meta_data->>'teacher_id', '')::uuid,
-    nullif(new.raw_user_meta_data->>'student_id', '')::uuid
+    nullif(new.raw_user_meta_data->>'student_id', '')::uuid,
+    coalesce((new.raw_user_meta_data->>'must_change_password')::boolean, false)
   )
   on conflict (id) do nothing;
   return new;

@@ -32,7 +32,22 @@ export async function getProfile(userId) {
     role: data.role,
     teacherId: data.teacher_id,
     studentId: data.student_id,
+    mustChangePassword: !!data.must_change_password,
   };
+}
+
+export async function updatePassword(newPassword) {
+  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+
+  const { data: sessionData } = await supabase.auth.getSession();
+  const userId = sessionData?.session?.user?.id;
+  if (userId) {
+    const { error: profileError } = await supabase.from("profiles").update({ must_change_password: false }).eq("id", userId);
+    if (profileError) throw profileError;
+  }
+
+  return data;
 }
 
 // Calls the admin-create-user Edge Function to create a real login for a
@@ -44,7 +59,7 @@ export async function createLogin({ email, password, name, role, teacherId, stud
   if (!token) throw new Error("Not signed in.");
 
   const { data, error } = await supabase.functions.invoke("admin-create-user", {
-    body: { email, password, name, role, teacherId, studentId },
+    body: { email, password, name, role, teacherId, studentId, mustChangePassword: true },
     headers: { Authorization: `Bearer ${token}` },
   });
   if (error) throw error;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Users, Search, Plus, Pencil, UserX, UserCheck, Upload } from "lucide-react";
 import { Button, Badge, EmptyState, Modal, Select } from "../../components/ui";
 import { attendanceStats, sectionLabel } from "../../utils/attendanceStats";
@@ -8,7 +8,7 @@ import StudentForm from "./StudentForm";
 import CsvImportModal from "./CsvImportModal";
 
 export default function StudentsPage({ data, refetch }) {
-  const { students, sections, attendance } = data;
+  const { students, teachers, sections, attendance } = data;
   const [query, setQuery] = useState("");
   const [sectionFilter, setSectionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("active");
@@ -16,6 +16,14 @@ export default function StudentsPage({ data, refetch }) {
   const [csvOpen, setCsvOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [toast, setToast] = useState({ visible: false, email: "", password: "" });
+
+  useEffect(() => {
+    if (!toast.visible) return;
+    const timer = setTimeout(() => setToast((current) => ({ ...current, visible: false })), 5000);
+    return () => clearTimeout(timer);
+  }, [toast.visible]);
 
   const filtered = students.filter((s) => {
     if (statusFilter === "active" && !s.active) return false;
@@ -28,6 +36,7 @@ export default function StudentsPage({ data, refetch }) {
   const saveStudent = async (form, loginInfo) => {
     setSaving(true);
     setError("");
+    setSuccess("");
     try {
       let student;
       if (editing === "new") {
@@ -40,6 +49,8 @@ export default function StudentsPage({ data, refetch }) {
             role: "student",
             studentId: student.id,
           });
+          setSuccess(`Temporary password created for ${student.name}. Tell them to sign in with ${loginInfo.email} and set a new password immediately.`);
+          setToast({ visible: true, email: loginInfo.email, password: loginInfo.password });
         }
       } else {
         await updateStudent(editing.id, form);
@@ -47,7 +58,12 @@ export default function StudentsPage({ data, refetch }) {
       await refetch();
       setEditing(null);
     } catch (err) {
-      setError(err.message || "Failed to save student.");
+      const message = err?.message || "";
+      if (message.includes("already exists") || message.includes("duplicate") || message === "This email already exists.") {
+        setError("This email already exists.");
+      } else {
+        setError(message || "Failed to save student.");
+      }
     } finally {
       setSaving(false);
     }
@@ -76,7 +92,20 @@ export default function StudentsPage({ data, refetch }) {
           Create a class and section first (under Classes) before adding students.
         </p>
       )}
+      {success && (
+        <div className="rounded-md border border-[var(--green)] bg-[var(--green-bg)] px-3 py-2 text-sm text-[var(--green)]">
+          {success}
+        </div>
+      )}
       {error && <p className="rounded-md bg-[var(--red-bg)] px-3 py-2 text-xs text-[var(--red)]">{error}</p>}
+
+      {toast.visible && (
+        <div className="fixed right-4 top-4 z-50 w-80 rounded-lg border border-[var(--green)] bg-[var(--paper-raised)] p-3 shadow-lg">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[var(--green)]">Temporary password created</p>
+          <p className="mt-2 text-sm font-medium">{toast.email}</p>
+          <p className="mt-1 text-xs text-[var(--ink-soft)]">Temporary password: {toast.password}</p>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         <div className="relative">
@@ -144,7 +173,7 @@ export default function StudentsPage({ data, refetch }) {
 
       {editing && (
         <Modal title={editing === "new" ? "Add student" : `Edit ${editing.name}`} onClose={() => setEditing(null)} wide>
-          <StudentForm sections={sections} initial={editing} onSave={saveStudent} onCancel={() => setEditing(null)} saving={saving} />
+          <StudentForm sections={sections} initial={editing} onSave={saveStudent} onCancel={() => setEditing(null)} saving={saving} existingTeachers={teachers} />
         </Modal>
       )}
       {csvOpen && (

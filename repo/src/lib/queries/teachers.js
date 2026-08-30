@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient";
+import { normalizeTeacherEmail, hasTeacherEmailConflict } from "../../teacherValidation.js";
 
 const mapTeacher = (t) => ({
   id: t.id,
@@ -16,9 +17,18 @@ export async function fetchTeachers() {
 }
 
 export async function createTeacher({ name, email, phone, subject }) {
+  const normalizedEmail = normalizeTeacherEmail(email);
+  if (!normalizedEmail) throw new Error("Teacher email is required.");
+
+  const { data: existingTeachers, error: fetchError } = await supabase.from("teachers").select("id,email");
+  if (fetchError) throw fetchError;
+  if (hasTeacherEmailConflict(existingTeachers, normalizedEmail)) {
+    throw new Error("This email already exists.");
+  }
+
   const { data, error } = await supabase
     .from("teachers")
-    .insert({ name, email: email.toLowerCase(), phone, subject })
+    .insert({ name, email: normalizedEmail, phone, subject })
     .select()
     .single();
   if (error) throw error;
@@ -26,9 +36,18 @@ export async function createTeacher({ name, email, phone, subject }) {
 }
 
 export async function updateTeacher(id, { name, email, phone, subject }) {
+  const normalizedEmail = normalizeTeacherEmail(email);
+  if (!normalizedEmail) throw new Error("Teacher email is required.");
+
+  const { data: existingTeachers, error: fetchError } = await supabase.from("teachers").select("id,email");
+  if (fetchError) throw fetchError;
+  if (hasTeacherEmailConflict(existingTeachers, normalizedEmail, id)) {
+    throw new Error("This email already exists.");
+  }
+
   const { data, error } = await supabase
     .from("teachers")
-    .update({ name, email: email?.toLowerCase(), phone, subject })
+    .update({ name, email: normalizedEmail, phone, subject })
     .eq("id", id)
     .select()
     .single();

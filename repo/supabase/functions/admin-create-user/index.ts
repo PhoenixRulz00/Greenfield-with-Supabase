@@ -52,7 +52,7 @@ serve(async (req) => {
       return json({ error: "Only admins can create new logins." }, 403);
     }
 
-    const { email, password, name, role, teacherId, studentId } = await req.json();
+    const { email, password, name, role, teacherId, studentId, mustChangePassword } = await req.json();
     if (!email || !password || !name || !role) {
       return json({ error: "email, password, name and role are required." }, 400);
     }
@@ -73,6 +73,7 @@ serve(async (req) => {
         role,
         teacher_id: teacherId || "",
         student_id: studentId || "",
+        must_change_password: String(Boolean(mustChangePassword)),
       },
     });
     if (createErr) return json({ error: createErr.message }, 400);
