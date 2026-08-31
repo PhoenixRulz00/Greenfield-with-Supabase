@@ -1,0 +1,1475 @@
+# 🏫 Greenfield School ERP — Full-Stack Management System
+
+A modern, responsive **School ERP & Register** designed to manage students, teachers, classes, sections, attendance, study materials, assignments, and administrative reports.
+
+The application is built using **React, Vite, TailwindCSS, and Supabase**, with PostgreSQL as the database, Supabase Auth for authentication, Row-Level Security (RLS) for authorization, Supabase Storage for educational materials, and Realtime subscriptions for live data updates.
+
+---
+
+## 📌 Project Overview
+
+### Selected Option
+
+**Option A — School ERP / School Management System**
+
+The project implements an MVP-level School ERP capable of managing:
+
+* Students
+* Teachers
+* Classes and sections
+* Teacher-subject assignments
+* Attendance
+* Study materials
+* Homework and assignments
+* Role-based dashboards
+* Attendance reports
+* CSV exports
+* Secure file storage
+* Role-based data access
+
+The system provides separate portals for **Administrators, Teachers, and Students**, with access controlled according to the authenticated user's role and assigned class/section.
+
+---
+
+## 🌐 Live Application
+
+### Deployed Website
+
+**Greenfield School ERP**
+
+https://greenfield-with-supabase.vercel.app/
+
+The deployed application can be used to test the complete authentication and role-based workflow.
+
+### Source Code
+
+**GitHub Repository**
+
+https://github.com/PhoenixRulz00/Greenfield-with-Supabase
+
+### Deployment
+
+**Vercel Project**
+
+https://vercel.com/akshaye-k-ss-projects/greenfield-with-supabase/HdbNRs6s2yYRY8EhMuvcNijQzp8J
+
+### Test Data
+
+**Test Data & Credentials Spreadsheet**
+
+https://docs.google.com/spreadsheets/d/1ylxhLLl3o7d3IYTA2W9qPiWE7pCB5iXnmXvyXUPn1ME/edit?usp=sharing
+
+---
+
+# ✨ Key Features
+
+## 👑 Administrator Portal
+
+Administrators have school-wide access to management and reporting functionality.
+
+### Dashboard
+
+* Total enrolled students
+* Active teachers
+* Configured classes and sections
+* Overall attendance statistics
+* Present, Absent, Late and Excused attendance breakdown
+* School-wide operational overview
+
+### Student Management
+
+* Add individual students
+* Store admission numbers
+* Record date of birth
+* Store guardian/contact information
+* Assign students to classes and sections
+* View student rosters
+* Bulk student import using CSV
+* Export student data
+
+### Teacher Management
+
+* Register teachers
+* Store teacher information
+* Assign specializations
+* View assigned classes and subjects
+* Manage teacher-section relationships
+
+### Class & Section Management
+
+* Create classes such as Grade 1, Grade 2, etc.
+* Create multiple sections such as A, B and C
+* Assign homeroom teachers
+* Assign multiple subject teachers
+* View section-level teacher assignments
+
+### Reports
+
+* Attendance reports
+* Date-range filtering
+* Grade-level filtering
+* Section filtering
+* Attendance status breakdown
+* CSV report generation for administrative auditing
+
+---
+
+# 🎓 Teacher Portal
+
+Teachers receive access only to the sections and subjects assigned to them.
+
+## Daily Attendance Register
+
+Teachers can:
+
+* Select assigned classes/sections
+* Select an attendance date
+* View enrolled students
+* Mark students as:
+
+  * **P — Present**
+  * **A — Absent**
+  * **L — Late**
+  * **E — Excused**
+* Correct previously recorded attendance
+* View attendance for previous dates
+
+### Attendance Audit Trail
+
+Attendance modifications are recorded in an audit log containing information about:
+
+* The affected attendance record
+* The user who performed the change
+* The previous value
+* The updated value
+* The time of modification
+
+This provides accountability when attendance records are corrected.
+
+---
+
+# 📚 Notes, Homework & Assignments
+
+Teachers can publish educational materials to their assigned sections.
+
+Supported material types include:
+
+* Notes / Study Material
+* Homework
+* Assignments
+
+Teachers can:
+
+* Select a target class
+* Select a section
+* Select the material type
+* Enter a title/description
+* Set a submission deadline
+* Upload supporting files
+* Preview uploaded material
+* Delete uploaded material when permitted
+
+### Supported Attachments
+
+The system supports educational files such as:
+
+* PDF
+* JPG
+* PNG
+* Word documents
+
+Maximum configured upload size:
+
+**25 MB per file**
+
+---
+
+# 🎒 Student Portal
+
+Students have a restricted view based on their enrolled class and section.
+
+## Study Materials
+
+Students can:
+
+* View notes
+* View study materials
+* View homework
+* View assignments
+* Filter materials by category
+* View due dates
+* Identify upcoming and overdue work
+* Open supported files in-app
+* Download educational materials
+
+### Privacy Isolation
+
+Students cannot simply query every school's materials.
+
+Database-level Row-Level Security ensures that students can only access materials associated with their own enrolled section.
+
+---
+
+# 📊 Student Attendance
+
+Students can view:
+
+* Personal attendance history
+* Attendance dates
+* Attendance status
+* Attendance percentage
+* Attendance statistics
+
+The attendance percentage is displayed using a threshold-based indicator:
+
+* **≥ 75%** — satisfactory attendance
+* **< 75%** — low attendance
+
+---
+
+# 🔐 Authentication & Role-Based Access
+
+The application uses **Supabase Authentication** for user authentication.
+
+Each authenticated user is associated with an application profile containing a role:
+
+```text
+admin
+teacher
+student
+```
+
+The role determines which portal and functionality the user can access.
+
+### Role Flow
+
+```mermaid
+flowchart TD
+    A[User Login] --> B[Supabase Auth]
+    B --> C[Authenticated User]
+    C --> D[Profile / Role]
+    
+    D -->|admin| E[Administrator Portal]
+    D -->|teacher| F[Teacher Portal]
+    D -->|student| G[Student Portal]
+    
+    E --> H[School-wide Management]
+    F --> I[Assigned Classes & Subjects]
+    G --> J[Enrolled Section Only]
+```
+
+---
+
+# 🏗️ System Architecture
+
+The project follows a client-server architecture in which the React frontend communicates with Supabase services.
+
+```mermaid
+flowchart TB
+    U[User / Browser]
+
+    U --> A[React Frontend]
+    
+    A --> B[Authentication Layer]
+    A --> C[Supabase Client]
+    
+    B --> D[Supabase Auth]
+    C --> E[Supabase API]
+    
+    E --> F[(PostgreSQL Database)]
+    E --> G[Row-Level Security]
+    E --> H[Supabase Storage]
+    E --> I[Realtime]
+    
+    J[Supabase Edge Functions] --> D
+    J --> F
+```
+
+## Frontend Layer
+
+Built using:
+
+* React
+* Vite
+* TailwindCSS
+* Lucide Icons
+
+The frontend is divided into reusable components, pages, hooks, query modules, and utility functions.
+
+## Backend Layer
+
+Supabase provides:
+
+* PostgreSQL database
+* Authentication
+* Row-Level Security
+* Storage
+* Realtime subscriptions
+* Edge Functions
+
+## Security Layer
+
+Authorization is enforced at the database level through PostgreSQL RLS policies rather than relying exclusively on frontend checks.
+
+This means a malicious user cannot gain additional database access simply by manipulating frontend JavaScript or browser requests.
+
+---
+
+# 🗄️ Database Architecture
+
+The primary database schema is located at:
+
+```text
+supabase/schema.sql
+```
+
+The database contains the following major entities.
+
+## `profiles`
+
+Stores application-level information associated with authenticated Supabase users.
+
+Key purpose:
+
+* Connect `auth.users` to application users
+* Store user role
+* Support role-based application behaviour
+
+---
+
+## `teachers`
+
+Stores teacher-specific information.
+
+Examples include:
+
+* Teacher identity
+* Contact information
+* Specialization
+* Assignment relationships
+
+---
+
+## `students`
+
+Stores student records.
+
+Examples include:
+
+* Student identity
+* Admission number
+* Date of birth
+* Guardian information
+* Section assignment
+
+---
+
+## `classes`
+
+Represents academic classes/grades.
+
+Examples:
+
+```text
+Grade 1
+Grade 2
+Grade 3
+```
+
+---
+
+## `sections`
+
+Represents individual sections within classes.
+
+Examples:
+
+```text
+Grade 1 - A
+Grade 1 - B
+Grade 2 - A
+```
+
+Sections are used as a key boundary for attendance, teacher assignments, and student material access.
+
+---
+
+## `teacher_assignments`
+
+Represents the relationship between teachers, sections and subjects.
+
+This allows:
+
+* Multiple teachers per section
+* Multiple subjects per teacher
+* Subject-specific assignments
+* Section-scoped teacher access
+
+---
+
+## `attendance_records`
+
+Stores attendance information for students.
+
+Attendance statuses include:
+
+```text
+Present
+Absent
+Late
+Excused
+```
+
+---
+
+## `attendance_audit_log`
+
+Stores changes made to attendance records.
+
+This provides an audit history for administrative accountability.
+
+---
+
+## `study_materials`
+
+Stores metadata for:
+
+* Notes
+* Study materials
+* Homework
+* Assignments
+
+The actual files are stored in Supabase Storage while the database stores the associated metadata.
+
+---
+
+# 🔒 Row-Level Security
+
+Row-Level Security is an important part of the system's security architecture.
+
+The application uses PostgreSQL RLS policies to restrict database access according to the authenticated user's role and relationships.
+
+### Administrator
+
+Administrators can access school-wide management data.
+
+### Teachers
+
+Teachers are restricted to sections they are assigned to.
+
+The project uses the database helper function:
+
+```text
+public.teacher_can_access_section(section_id)
+```
+
+to determine whether a teacher is authorized to access a particular section.
+
+### Students
+
+Students are restricted to information associated with their own enrolled section.
+
+This is particularly important for educational materials and assignments.
+
+---
+
+# 📁 Supabase Storage
+
+Educational attachments are stored using a Supabase Storage bucket:
+
+```text
+materials
+```
+
+Files are organized using section-based storage paths.
+
+Example:
+
+```text
+{section_id}/{timestamp}_{filename}
+```
+
+This provides a logical separation between materials belonging to different sections.
+
+---
+
+# ⚡ Realtime
+
+Supabase Realtime is used where appropriate to keep application data synchronized without requiring constant manual page refreshes.
+
+This supports a more responsive ERP experience when database records change.
+
+---
+
+# 🧩 Project Structure
+
+```text
+repo/
+├── src/
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── AppShell
+│   │   │   └── ThemeStyles
+│   │   │
+│   │   ├── materials/
+│   │   │   ├── MaterialCard
+│   │   │   ├── MaterialUploadModal
+│   │   │   └── MaterialViewerModal
+│   │   │
+│   │   └── ui/
+│   │       ├── Button
+│   │       ├── Input
+│   │       ├── Select
+│   │       ├── Modal
+│   │       ├── Badge
+│   │       ├── Field
+│   │       └── EmptyState
+│   │
+│   ├── hooks/
+│   │   ├── useAuth.jsx
+│   │   └── useSchoolData.js
+│   │
+│   ├── lib/
+│   │   ├── queries/
+│   │   │   ├── auth
+│   │   │   ├── attendance
+│   │   │   ├── materials
+│   │   │   └── other query modules
+│   │   │
+│   │   └── supabaseClient.js
+│   │
+│   ├── pages/
+│   │   ├── admin/
+│   │   │   ├── DashboardPage
+│   │   │   ├── StudentsPage
+│   │   │   ├── TeachersPage
+│   │   │   ├── ClassesPage
+│   │   │   └── ReportsPage
+│   │   │
+│   │   ├── teacher/
+│   │   │   └── TeacherHomePage
+│   │   │
+│   │   ├── student/
+│   │   │   └── StudentHomePage
+│   │   │
+│   │   ├── ChangePasswordPage
+│   │   └── LoginPage
+│   │
+│   ├── utils/
+│   │   └── Attendance calculation & formatting
+│   │
+│   ├── App.jsx
+│   └── main.jsx
+│
+├── supabase/
+│   ├── schema.sql
+│   └── functions/
+│       └── Supabase Edge Functions
+│
+├── package.json
+├── package-lock.json
+├── vite.config.*
+├── tailwind configuration
+└── README.md
+```
+
+---
+
+# 🛠️ Technology Stack
+
+| Layer              | Technology                                   |
+| ------------------ | -------------------------------------------- |
+| Frontend           | React 18                                     |
+| Build Tool         | Vite 6                                       |
+| Styling            | TailwindCSS                                  |
+| Icons              | Lucide Icons                                 |
+| Database           | PostgreSQL via Supabase                      |
+| Authentication     | Supabase Auth                                |
+| Authorization      | PostgreSQL Row-Level Security                |
+| File Storage       | Supabase Storage                             |
+| Realtime           | Supabase Realtime                            |
+| Serverless Backend | Supabase Edge Functions                      |
+| Deployment         | Vercel                                       |
+| Package Manager    | npm                                          |
+| Fonts              | IBM Plex Sans, IBM Plex Mono, Source Serif 4 |
+
+---
+
+# 🔧 Database Setup
+
+The project uses a live Supabase backend.
+
+The database schema is maintained in:
+
+```text
+supabase/schema.sql
+```
+
+## Setting Up a New Supabase Project
+
+If deploying the project with a new Supabase backend:
+
+### 1. Create a Supabase project
+
+Create a new project through the Supabase dashboard.
+
+### 2. Execute the database schema
+
+Open:
+
+```text
+Supabase Dashboard
+→ SQL Editor
+→ New Query
+```
+
+Copy the contents of:
+
+```text
+supabase/schema.sql
+```
+
+into the SQL Editor and execute it.
+
+This creates the required tables, relationships, helper functions, RLS policies and database configuration.
+
+### 3. Configure Authentication
+
+Enable email/password authentication in Supabase Auth.
+
+Create the required authentication users.
+
+### 4. Configure Storage
+
+Create/configure the required:
+
+```text
+materials
+```
+
+storage bucket and associated policies.
+
+### 5. Configure Edge Functions
+
+If the deployment requires administrative user-creation functionality, deploy the Edge Functions located under:
+
+```text
+supabase/functions/
+```
+
+---
+
+# 🔑 Environment Variables
+
+The application uses Vite environment variables to connect the frontend to Supabase.
+
+Create a local file:
+
+```text
+.env.local
+```
+
+Example:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### Important
+
+Do **not** commit `.env.local` to Git.
+
+The repository should contain only a safe example/template file if required:
+
+```text
+.env.example
+```
+
+The actual credentials should remain in local environment configuration and in the deployment platform's environment-variable settings.
+
+### Vercel
+
+For a Vercel deployment, configure the same variables in:
+
+```text
+Vercel
+→ Project
+→ Settings
+→ Environment Variables
+```
+
+Required frontend variables:
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
+
+Never expose a Supabase service-role key in frontend code.
+
+---
+
+# 🚀 Local Setup & Running
+
+## Prerequisites
+
+Install:
+
+* Node.js 18 or higher
+* npm
+
+Verify the installation:
+
+```bash
+node --version
+npm --version
+```
+
+---
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/PhoenixRulz00/Greenfield-with-Supabase.git
+```
+
+Enter the project:
+
+```bash
+cd Greenfield-with-Supabase
+```
+
+---
+
+## 2. Install Dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 3. Configure Environment Variables
+
+Create:
+
+```text
+.env.local
+```
+
+Add:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+Use the credentials from your Supabase project.
+
+---
+
+## 4. Start the Development Server
+
+```bash
+npm run dev
+```
+
+Vite will start the local development server.
+
+Open:
+
+```text
+http://localhost:5173
+```
+
+in your browser.
+
+---
+
+# 🏭 Production Build
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+The generated production files can then be deployed to a compatible hosting platform such as Vercel.
+
+To locally preview the production build:
+
+```bash
+npm run preview
+```
+
+---
+
+# 🧪 Testing & Verification
+
+The project can be tested using both automated build verification and manual role-based workflow testing.
+
+## 1. Dependency Verification
+
+Install the project dependencies:
+
+```bash
+npm install
+```
+
+A successful installation confirms that the declared project dependencies can be resolved.
+
+---
+
+## 2. Production Build Test
+
+Run:
+
+```bash
+npm run build
+```
+
+The build should complete successfully without compilation errors.
+
+This verifies:
+
+* React compilation
+* Vite bundling
+* Import resolution
+* Production asset generation
+* TypeScript/JavaScript syntax where applicable
+
+---
+
+## 3. Manual Authentication Testing
+
+Use the supplied test accounts to verify:
+
+* Login
+* Logout
+* Role detection
+* Role-specific dashboard routing
+* Unauthorized page access
+* Password-change functionality where applicable
+
+---
+
+## 4. Administrator Workflow Testing
+
+Verify that an administrator can:
+
+1. Log in.
+2. View dashboard statistics.
+3. Add/view students.
+4. Add/view teachers.
+5. Create classes.
+6. Create sections.
+7. Assign homeroom teachers.
+8. Assign subject teachers.
+9. View attendance reports.
+10. Filter attendance data.
+11. Export CSV reports.
+
+---
+
+## 5. Teacher Workflow Testing
+
+Verify that a teacher can:
+
+1. Log in.
+2. View only assigned sections.
+3. Select a section.
+4. View enrolled students.
+5. Mark attendance.
+6. Modify attendance.
+7. Verify audit history.
+8. Create notes.
+9. Create homework.
+10. Create assignments.
+11. Upload supported files.
+12. Set deadlines.
+13. View uploaded materials.
+
+---
+
+## 6. Student Workflow Testing
+
+Verify that a student can:
+
+1. Log in.
+2. View their dashboard.
+3. View only materials belonging to their section.
+4. Filter Notes/Homework/Assignments.
+5. View due dates.
+6. Open supported files.
+7. Download materials.
+8. View personal attendance history.
+9. View attendance statistics.
+
+---
+
+## 7. Security / RLS Testing
+
+RLS should also be tested by attempting to access data belonging to another section.
+
+Expected behaviour:
+
+```text
+Unauthorized database query
+        ↓
+PostgreSQL RLS policy
+        ↓
+Access denied / no unauthorized records returned
+```
+
+The frontend should not be treated as the primary security boundary. Database policies provide the actual data-access restrictions.
+
+---
+
+# 🧪 Pre-Configured Test Accounts
+
+The application includes test accounts for demonstrating the major workflows.
+
+> **Important:** These credentials are intended for demonstration/testing of this project. They should be changed or removed before using the application in a real production school environment.
+
+| Role       | Email                      | Password    | Access                   |
+| ---------- | -------------------------- | ----------- | ------------------------ |
+| 👑 Admin   | `admin@greenfield.edu`     | `admin123`  | Entire school            |
+| 🎓 Teacher | `rajesh.sharma@gmail.com`  | `rajesh456` | Grade 1 · Mathematics    |
+| 🎓 Teacher | `priya.nair@gmail.com`     | `priya456`  | Grade 2 · Physics        |
+| 🎓 Teacher | `ananya.iyer@yahoo.com`    | `ananya456` | Grade 1 · English        |
+| 🎓 Teacher | `suresh.kumar@outlook.com` | `suresh456` | Chemistry / Homeroom     |
+| 🎓 Teacher | `rojen.reji@gmail.com`     | `rojen456`  | History & Social Studies |
+| 🎒 Student | `aarav.stu001@school.edu`  | `Pass@STU1` | Class-specific access    |
+| 🎒 Student | `ananya.stu002@school.edu` | `Pass@STU2` | Class-specific access    |
+
+Additional/current test data can be found in the project spreadsheet:
+
+https://docs.google.com/spreadsheets/d/1ylxhLLl3o7d3IYTA2W9qPiWE7pCB5iXnmXvyXUPn1ME/edit?usp=sharing
+
+---
+
+# 🎯 Recommended Examiner Test Flow
+
+For a quick demonstration, the following sequence covers the major functionality.
+
+```mermaid
+flowchart LR
+    A[Login as Admin] --> B[Dashboard]
+    B --> C[Students]
+    C --> D[Teachers]
+    D --> E[Classes & Sections]
+    E --> F[Teacher Assignments]
+    
+    F --> G[Login as Teacher]
+    G --> H[Mark Attendance]
+    H --> I[Post Material]
+    I --> J[Upload Assignment]
+    
+    J --> K[Login as Student]
+    K --> L[View Materials]
+    L --> M[Download Assignment]
+    M --> N[View Attendance]
+    
+    N --> O[Return to Admin]
+    O --> P[Attendance Reports]
+    P --> Q[CSV Export]
+```
+
+---
+
+# 🔍 Detailed Feature Walkthrough
+
+## 1. 👑 Administrator Portal
+
+Log in as the Administrator to access project-wide management.
+
+### Live Dashboard
+
+The dashboard provides:
+
+* Total enrolled students
+* Active teachers
+* Configured classes
+* Today's attendance rate
+* Present count
+* Absent count
+* Late count
+* Excused count
+
+### Student Management
+
+Administrators can:
+
+* Add individual students
+* Assign admission numbers
+* Record date of birth
+* Add guardian information
+* Assign sections
+* Import students
+* Export student rosters
+
+### Teacher Directory
+
+Administrators can:
+
+* Register teachers
+* Add teacher specialization
+* View assigned sections
+* Manage teacher relationships
+
+### Class & Section Hierarchy
+
+Administrators can create:
+
+```text
+Class
+ ├── Section A
+ ├── Section B
+ └── Section C
+```
+
+Teachers can then be assigned to individual sections and subjects.
+
+### Reports
+
+Attendance can be filtered by:
+
+* Date
+* Date range
+* Grade
+* Section
+* Attendance status
+
+Reports can be exported as CSV for administrative auditing.
+
+---
+
+# 2. 🎓 Teacher Portal
+
+Teachers receive access to the classes/sections assigned to them.
+
+## Daily Attendance
+
+Teachers can:
+
+* Switch between assigned sections
+* Select dates
+* Mark attendance
+* Correct attendance
+* Review previous attendance
+
+Attendance states:
+
+```text
+P = Present
+A = Absent
+L = Late
+E = Excused
+```
+
+All corrections can be tracked through the attendance audit log.
+
+---
+
+# 3. 📚 Teacher Materials
+
+Teachers can select:
+
+```text
++ Post Material / Assignment
+```
+
+and provide:
+
+* Class
+* Section
+* Material type
+* Title
+* Description
+* Attachment
+* Deadline
+
+Supported categories:
+
+```text
+Notes / Study Material
+Homework
+Assignment
+```
+
+---
+
+# 4. 🎒 Student Portal
+
+Students receive a restricted class-specific view.
+
+The system automatically limits materials to the student's enrolled section.
+
+Students can:
+
+* Browse educational materials
+* Filter by category
+* View due dates
+* Open PDFs
+* View images
+* Download files
+* Review attendance
+
+---
+
+# 🔐 Security Model
+
+The application follows a layered security model.
+
+```text
+┌───────────────────────────────┐
+│        React Frontend         │
+│ Role-based UI / Routing       │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│      Supabase Auth            │
+│ Authentication / Identity     │
+└───────────────┬───────────────┘
+                │
+                ▼
+┌───────────────────────────────┐
+│ PostgreSQL + RLS              │
+│ Database-level Authorization  │
+└───────────────┬───────────────┘
+                │
+        ┌───────┴────────┐
+        ▼                ▼
+   Database          Storage
+```
+
+Frontend role checks provide the appropriate user experience, while RLS policies provide the database-level security boundary.
+
+---
+
+# ⚠️ Known Limitations
+
+This project is an **MVP School ERP**, so several production-level features are outside the current scope.
+
+### 1. No Full Student Assignment Submission System
+
+Students can view/download assignments, but a complete workflow for:
+
+* Uploading student submissions
+* Submission versioning
+* Teacher grading
+* Feedback
+* Marks
+
+is not currently implemented as a full assessment system.
+
+### 2. Limited Notification System
+
+The application provides due-date information inside the application, but does not currently implement a complete:
+
+* Email notification system
+* SMS notification system
+* Push notification system
+
+for assignment deadlines or attendance alerts.
+
+### 3. Basic Reporting
+
+The current reporting system focuses primarily on attendance and CSV exports.
+
+Advanced analytics such as:
+
+* Academic performance trends
+* Subject-wise performance
+* Teacher performance analytics
+* Student risk prediction
+* Long-term attendance trends
+
+could be added later.
+
+### 4. No Dedicated Parent Portal
+
+Parents/guardians do not currently have a separate authenticated portal.
+
+### 5. Limited Academic Management
+
+The current MVP does not provide a complete:
+
+* Examination management system
+* Gradebook
+* Timetable management
+* Fee management
+* Payroll system
+* Transport management
+* Library management
+
+module.
+
+### 6. Demo Credentials
+
+The repository currently includes demonstration credentials for evaluation. These should not be used as permanent production credentials.
+
+### 7. File Management
+
+The current file system focuses on educational materials. Advanced document-management capabilities such as file versioning, automated archival, and extensive document lifecycle management are outside the current MVP scope.
+
+---
+
+# 🚀 Future Improvements
+
+The system can be extended into a complete school-management platform.
+
+## Academic Management
+
+* Examination management
+* Marks entry
+* Grade calculation
+* Report cards
+* Subject-wise performance analytics
+* Gradebooks
+
+## Student Assignment System
+
+* Student submission uploads
+* Submission status
+* Teacher grading
+* Marks
+* Teacher feedback
+* Late submission tracking
+
+## Communication
+
+* Email notifications
+* SMS notifications
+* Push notifications
+* School announcements
+* Teacher-student communication
+* Parent notifications
+
+## Parent Portal
+
+A dedicated parent account could provide:
+
+* Child attendance
+* Assignment status
+* Academic performance
+* School announcements
+* Teacher communication
+* Fee information
+
+## Advanced Attendance
+
+Future versions could include:
+
+* QR-based attendance
+* RFID integration
+* Biometric integration
+* Automated absentee notifications
+* Attendance trend analytics
+
+## Timetable Management
+
+* Class timetable
+* Teacher timetable
+* Room allocation
+* Conflict detection
+* Substitution management
+
+## Finance
+
+* Fee collection
+* Fee receipts
+* Outstanding balances
+* Payment history
+* Online payment integration
+
+## Advanced Analytics
+
+* Attendance trends
+* At-risk student identification
+* Class performance comparison
+* Teacher workload analysis
+* Academic dashboards
+
+## Mobile Application
+
+A dedicated mobile application could provide:
+
+* Teacher attendance
+* Student assignments
+* Parent notifications
+* Push notifications
+* Mobile document viewing
+
+---
+
+# 🌐 Deployment
+
+The application is deployed using Vercel.
+
+### Production Website
+
+https://greenfield-with-supabase.vercel.app/
+
+The frontend communicates with the configured Supabase project.
+
+For production deployment:
+
+1. Connect the GitHub repository to Vercel.
+2. Configure the required environment variables.
+3. Set the appropriate build command.
+4. Deploy the application.
+5. Verify authentication and Supabase connectivity.
+6. Test each user role after deployment.
+
+---
+
+# 📋 Quick Setup Summary
+
+For a new developer:
+
+```bash
+# Clone
+git clone https://github.com/PhoenixRulz00/Greenfield-with-Supabase.git
+
+# Enter project
+cd Greenfield-with-Supabase
+
+# Install dependencies
+npm install
+
+# Configure environment variables
+# Create .env.local
+
+# Start development server
+npm run dev
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+For production verification:
+
+```bash
+npm run build
+npm run preview
+```
+
+---
+
+# 📚 Complete System Workflow
+
+```mermaid
+flowchart TD
+    A[User] --> B[Supabase Authentication]
+    
+    B --> C{Role}
+    
+    C -->|Admin| D[Admin Dashboard]
+    C -->|Teacher| E[Teacher Dashboard]
+    C -->|Student| F[Student Dashboard]
+    
+    D --> D1[Manage Students]
+    D --> D2[Manage Teachers]
+    D --> D3[Manage Classes]
+    D --> D4[Assign Teachers]
+    D --> D5[Reports]
+    
+    E --> E1[Assigned Sections]
+    E1 --> E2[Attendance]
+    E1 --> E3[Notes]
+    E1 --> E4[Homework]
+    E1 --> E5[Assignments]
+    
+    F --> F1[My Section]
+    F1 --> F2[Study Materials]
+    F1 --> F3[Homework]
+    F1 --> F4[Assignments]
+    F1 --> F5[Attendance]
+    
+    D2 --> G[(Supabase PostgreSQL)]
+    D3 --> G
+    E2 --> G
+    E3 --> G
+    F2 --> G
+    F5 --> G
+    
+    E3 --> H[Supabase Storage]
+    E4 --> H
+    E5 --> H
+    
+    G --> I[Row-Level Security]
+    H --> I
+```
+
+---
+
+# 📈 Project Highlights
+
+The Greenfield School ERP demonstrates the implementation of a modern full-stack educational management system with:
+
+* ✅ React-based responsive frontend
+* ✅ Vite development/build pipeline
+* ✅ TailwindCSS design system
+* ✅ Supabase PostgreSQL backend
+* ✅ Supabase Authentication
+* ✅ Role-based access control
+* ✅ PostgreSQL Row-Level Security
+* ✅ Teacher-section authorization
+* ✅ Student section isolation
+* ✅ Attendance management
+* ✅ Attendance audit trail
+* ✅ Study material management
+* ✅ Homework and assignment management
+* ✅ PDF/JPG/PNG document storage
+* ✅ Supabase Storage
+* ✅ Realtime data support
+* ✅ CSV reporting
+* ✅ Responsive dashboard interfaces
+* ✅ Vercel deployment
+
+---
+
+# 👨‍💻 Project Information
+
+**Project:** Greenfield School ERP
+
+**Selected Option:** Option A — School ERP / School Management System
+
+**Frontend:** React + Vite + TailwindCSS
+
+**Backend:** Supabase
+
+**Database:** PostgreSQL
+
+**Authentication:** Supabase Auth
+
+**Deployment:** Vercel
+
+**Repository:**
+https://github.com/PhoenixRulz00/Greenfield-with-Supabase
+
+**Live Application:**
+https://greenfield-with-supabase.vercel.app/
+
+**Test Data:**
+https://docs.google.com/spreadsheets/d/1ylxhLLl3o7d3IYTA2W9qPiWE7pCB5iXnmXvyXUPn1ME/edit?usp=sharing
+
+---
+
+# 📄 License
+
+This project is intended primarily as an academic/project demonstration of a full-stack School ERP system.
+
+---
+
+## 🏁 Conclusion
+
+Greenfield School ERP provides a functional MVP for managing core school operations through separate administrative, teacher, and student workflows.
+
+The system combines a modern React frontend with Supabase's PostgreSQL database, authentication, storage, realtime capabilities, and database-level Row-Level Security to demonstrate a practical full-stack architecture suitable for extending into a larger school-management platform.
