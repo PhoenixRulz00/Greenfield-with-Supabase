@@ -333,8 +333,96 @@ drop policy if exists "years_write_admin" on public.academic_years;
 create policy "years_write_admin" on public.academic_years
   for all using (public.is_admin()) with check (public.is_admin());
 
+-- ----------------------------------------------------------------------------
+-- 5. STUDY MATERIALS, NOTES & ASSIGNMENTS
+-- ----------------------------------------------------------------------------
+
+create table if not exists public.study_materials (
+  id           uuid primary key default gen_random_uuid(),
+  section_id   uuid not null references public.sections(id) on delete cascade,
+  teacher_id   uuid references public.teachers(id) on delete set null,
+  type         text not null check (type in ('notes', 'homework', 'assignment')),
+  title        text not null,
+  subject      text,
+  description  text,
+  due_date     date,
+  file_url     text,
+  file_name    text,
+  file_type    text,
+  file_size    bigint,
+  created_at   timestamptz not null default now()
+);
+
+create index if not exists idx_study_materials_section on public.study_materials(section_id);
+create index if not exists idx_study_materials_teacher on public.study_materials(teacher_id);
+create index if not exists idx_study_materials_type on public.study_materials(type);
+create index if not exists idx_study_materials_created on public.study_materials(created_at desc);
+
+alter table public.study_materials enable row level security;
+
+-- Admin: full access
+drop policy if exists "study_materials_admin_all" on public.study_materials;
+create policy "study_materials_admin_all" on public.study_materials
+  for all using (public.is_admin()) with check (public.is_admin());
+
+-- Teachers: read materials for their sections
+drop policy if exists "study_materials_select_teacher" on public.study_materials;
+create policy "study_materials_select_teacher" on public.study_materials
+  for select using (
+    public.current_role() = 'teacher' and public.teacher_can_access_section(section_id)
+  );
+
+-- Teachers: post new materials to sections they can access
+drop policy if exists "study_materials_insert_teacher" on public.study_materials;
+create policy "study_materials_insert_teacher" on public.study_materials
+  for insert with check (
+    public.current_role() = 'teacher' and public.teacher_can_access_section(section_id)
+  );
+
+-- Teachers: edit or delete their own materials
+drop policy if exists "study_materials_update_teacher" on public.study_materials;
+create policy "study_materials_update_teacher" on public.study_materials
+  for update using (
+    public.current_role() = 'teacher' and (teacher_id = public.current_teacher_id() or public.teacher_can_access_section(section_id))
+  );
+
+drop policy if exists "study_materials_delete_teacher" on public.study_materials;
+create policy "study_materials_delete_teacher" on public.study_materials
+  for delete using (
+    public.current_role() = 'teacher' and (teacher_id = public.current_teacher_id() or public.teacher_can_access_section(section_id))
+  );
+
+-- Students: can only read materials for their own section
+drop policy if exists "study_materials_select_student" on public.study_materials;
+create policy "study_materials_select_student" on public.study_materials
+  for select using (
+    public.current_role() = 'student' and section_id = (
+      select s.section_id from public.students s where s.id = public.current_student_id()
+    )
+  );
+
+-- ----------------------------------------------------------------------------
+-- 6. STORAGE BUCKET FOR MATERIALS & ASSIGNMENTS
+-- ----------------------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('materials', 'materials', true)
+on conflict (id) do update set public = true;
+
+-- Storage policies for the 'materials' bucket
+drop policy if exists "materials_storage_select" on storage.objects;
+create policy "materials_storage_select" on storage.objects
+  for select using (bucket_id = 'materials' and auth.role() = 'authenticated');
+
+drop policy if exists "materials_storage_insert" on storage.objects;
+create policy "materials_storage_insert" on storage.objects
+  for insert with check (bucket_id = 'materials' and auth.role() = 'authenticated');
+
+drop policy if exists "materials_storage_delete" on storage.objects;
+create policy "materials_storage_delete" on storage.objects
+  for delete using (bucket_id = 'materials' and auth.role() = 'authenticated');
+
 -- ============================================================================
--- 5. FIRST ADMIN ACCOUNT
+-- 7. FIRST ADMIN ACCOUNT
 -- ============================================================================
 -- This schema intentionally seeds NO data. After running this script:
 --   1. Go to Authentication > Users in the Supabase dashboard and click

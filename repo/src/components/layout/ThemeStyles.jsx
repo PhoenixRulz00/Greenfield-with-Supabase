@@ -18,6 +18,10 @@ export default function ThemeStyles() {
         --amber: #B07A1F;
         --amber-bg: #F5EBD8;
         --slate-bg: #EEEBE2;
+        --blue: #1D4E8F;
+        --blue-bg: #E8EEF7;
+        --orange: #B35C1A;
+        --orange-bg: #F5EBD8;
       }
       .erp-root { font-family: 'IBM Plex Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100%; }
       .erp-root button, .erp-root input, .erp-root select, .erp-root textarea { font-family: inherit; }
