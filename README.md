@@ -18,7 +18,7 @@ This project is pre-configured with active test data and role-based accounts so 
 | 🎓 **Teacher** | `ananya.iyer@yahoo.com` | `ananya456` *(or `ananya123`)* | Grade 1 · English | Subject teacher materials upload |
 | 🎓 **Teacher** | `suresh.kumar@outlook.com` | `suresh456` *(or `suresh123`)* | Chemistry | Homeroom & subject assignment flows |
 | 🎓 **Teacher** | `rojen.reji@gmail.com` | `rojen456` *(or `rojen123`)* | History & Social Studies | Multi-section management |
-| 🎒 **Student** | *(Created via Admin)* | `student123` | Class-Specific | View scoped study notes, download PDF/JPG, attendance summary |
+| 🎒 **Student** | 'aarav.stu001@school.edu' | `Pass@STU1` | Class-Specific | View scoped study notes, download PDF/JPG, attendance summary |
 
 📊 **Live Test Data Spreadsheet:** [View Test Data & Credentials on Google Sheets](https://docs.google.com/spreadsheets/d/1ylxhLLl3o7d3IYTA2W9qPiWE7pCB5iXnmXvyXUPn1ME/edit?usp=sharing)
 
