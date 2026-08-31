@@ -185,9 +185,3 @@ repo/
 - **Backend & Auth**: Supabase (PostgreSQL 15), Supabase Auth, Supabase Storage
 - **Design System**: Editorial Classical ERP styling (IBM Plex Sans, IBM Plex Mono, Source Serif 4)
 - **Deployment**: Compatible with Vercel, Netlify, Cloudflare Pages
-
----
-
-## 📜 License
-
-MIT License — Created for Greenfield School ERP.
